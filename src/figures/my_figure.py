@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 # Load the simulation results
-X = np.loadtxt("simulation_results.dat")
+X = np.loadtxt("simulation.dat")
 
 # Plot the figure
 fig, ax = plt.subplots(1)

@@ -22,4 +22,4 @@ X = np.angle(convolve2d(X, scharr, boundary="wrap", mode="same"))
 X = zoom(X, 5)[:300, :300]
 
 # Save the "simulation" results to disk
-np.savetxt("simulation_results.dat", X=X)
+np.savetxt("simulation.dat", X=X)

@@ -158,7 +158,7 @@ Download a dataset and make it a dependency of a particular figure:
     # Custom rule to download a dataset
     rule my_dataset:
         output:
-            report("src/figures/my_dataset.dat", category="Dataset")
+            "src/figures/my_dataset.dat"
         shell:
             "curl https://zenodo.org/record/5187276/files/fibonacci.dat --output {output[0]}"
 
@@ -234,7 +234,7 @@ included outside of a ``figure`` environment:
             "src/figures/custom_script.py",
             "environment.yml"
         output:
-            report("src/figures/custom_figure.pdf", category="Figure")
+            "src/figures/custom_figure.pdf"
 
 
 Override the internal ``figure`` rule completely:
@@ -246,7 +246,7 @@ Override the internal ``figure`` rule completely:
             "src/figures/custom_script.py",
             "environment.yml",
         output:
-            report("src/figures/custom_figure.pdf", category="Figure")
+            "src/figures/custom_figure.pdf"
         conda:
             "environment.yml"
         shell:

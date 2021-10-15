@@ -50,7 +50,7 @@ for fig in figure_dependencies:
                 message:
                     f"Downloading dependency file {dep_name} from Zenodo..."
                 output:
-                    report(f"src/figures/{dep_name}", category="Dataset")
+                    temp(f"src/figures/{dep_name}")
                 conda:
                     POSIX(USER / "environment.yml")
                 params:
@@ -69,7 +69,7 @@ for fig in figure_dependencies:
                 message:
                     f"Generating figure dependency file {dep_name}..."
                 output:
-                    report(f"src/figures/{dep_name}", category="Dataset")
+                    f"src/figures/{dep_name}"
                 conda:
                     POSIX(USER / "environment.yml")
                 shell:

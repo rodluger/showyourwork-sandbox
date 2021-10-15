@@ -1,6 +1,6 @@
 figure_dependencies:
   my_figure.py:
-    - simulation_results.dat:
+    - simulation.dat:
         generate: "python run_simulation.py"
         upload:
           sandbox: false
