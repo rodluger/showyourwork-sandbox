@@ -1,7 +1,6 @@
 import requests
 import os
 import json
-import sys
 
 
 class ZenodoError(Exception):
@@ -21,16 +20,25 @@ def upload_simulation(
     file_name,
     deposit_title,
     deposit_description,
-    access_token,
     sandbox=False,
+    token_name="ZENODO_TOKEN",
     file_path=".",
+    generate="",
+    repo_url="",
 ):
 
-    # Uplodad to sandbox (for testing) or to actual Zenodo?
+    # Upload to sandbox (for testing) or to actual Zenodo?
     if sandbox:
         zenodo_url = "sandbox.zenodo.org"
     else:
         zenodo_url = "zenodo.org"
+
+    # Retrieve the access token
+    access_token = os.getenv(token_name, None)
+    if access_token is None:
+        raise ValueError(
+            f"Zenodo access token `{token_name}` not found. This should be set as an environment variable and/or repository secret."
+        )
 
     # Search for an existing deposit with the given title
     print("Searching for existing deposit...")
@@ -111,6 +119,25 @@ def upload_simulation(
                 )
             )
 
+        # Add some metadata
+        print("Adding metadata...")
+        data = {
+            "metadata": {
+                "title": deposit_title,
+                "upload_type": "dataset",
+                "description": f"{deposit_description}<br/><br/>Created using <a href='https://github.com/rodluger/showyourwork'>showyourwork</a> from <a href='{repo_url}'>this GitHub repo</a> using the following command: <pre><code class='language-bash'>cd src/figures && {generate}</code></pre>",
+                "creators": [{"name": "Luger, Rodrigo"}],
+            }
+        }
+        r = check_status(
+            requests.put(
+                f"https://{zenodo_url}/api/deposit/depositions/{DEPOSIT_ID}",
+                params={"access_token": access_token},
+                data=json.dumps(data),
+                headers={"Content-Type": "application/json"},
+            )
+        )
+
         # Publish the deposit
         print("Publishing the deposit...")
         try:
@@ -185,8 +212,8 @@ def upload_simulation(
 def download_simulation(
     file_name,
     deposit_title,
-    access_token,
     sandbox=False,
+    token_name="ZENODO_TOKEN",
     file_path=".",
 ):
 
@@ -195,6 +222,13 @@ def download_simulation(
         zenodo_url = "sandbox.zenodo.org"
     else:
         zenodo_url = "zenodo.org"
+
+    # Retrieve the access token
+    access_token = os.getenv(token_name, None)
+    if access_token is None:
+        raise ValueError(
+            f"Zenodo access token `{token_name}` not found. This should be set as an environment variable and/or repository secret."
+        )
 
     # Search for an existing deposit with the given title
     print("Searching for the deposit...")
@@ -241,35 +275,30 @@ def download_simulation(
                     params={"access_token": access_token},
                 )
             )
-            with open(file_name, "wb") as f:
+            with open(os.path.join(file_path, file_name), "wb") as f:
                 f.write(r.content)
             return
 
     raise Exception("Unable to download the file.")
 
 
-# Name of the file to be uploaded
-file_name = "simulation_results.dat"
-
-
-# Name & description of the deposit on Zenodo
-deposit_title = "Sample simulation results for showyourwork"
-deposit_description = "A sample dataset uploaded using showyourwork."
-
-
-# Zenodo access token. Create one here:
-# https://zenodo.org/account/settings/applications/tokens/new/
-# Remember to NEVER store it in unencrypted text files!
-# I store it as an environment variable on my local machine, as well
-# as a repository secret on GITHUB:
-# https://docs.github.com/en/actions/security-guides/encrypted-secrets
-access_token = os.getenv("ZENODO_TOKEN")
-
-
 # Upload or download the file
-if "--upload" in sys.argv:
-    upload_simulation(file_name, deposit_title, deposit_description, access_token)
-elif "--download" in sys.argv:
-    download_simulation(file_name, deposit_title, access_token)
+if snakemake.params["action"] == "upload":
+    upload_simulation(
+        snakemake.params["file_name"],
+        snakemake.params["deposit_title"],
+        snakemake.params["deposit_description"],
+        sandbox=snakemake.params["sandbox"],
+        token_name=snakemake.params["token_name"],
+        file_path=snakemake.params["file_path"],
+        repo_url=snakemake.params["repo_url"],
+        generate=snakemake.params["generate"],
+    )
 else:
-    raise ValueError("Please specify either --upload or --download.")
+    download_simulation(
+        snakemake.params["file_name"],
+        snakemake.params["deposit_title"],
+        sandbox=snakemake.params["sandbox"],
+        token_name=snakemake.params["token_name"],
+        file_path=snakemake.params["file_path"],
+    )

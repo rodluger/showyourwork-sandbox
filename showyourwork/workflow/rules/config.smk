@@ -26,14 +26,6 @@ arxiv_tarball_exclude = config.get(
     ]),
 )
 
-# Figure dependencies
-figure_dependencies = config.get("figure_dependencies", {})
-for fd in figure_dependencies:
-    full_path = (Path("src") / "figures" / fd).absolute()
-    if not full_path.exists():
-        raise ValueError("Figure script specified in config file does not exist: {}".format(full_path))
-
-
 # Install latest version of tectonic from source? May be useful for debugging.
 tectonic_latest = str(config.get("tectonic_latest", "false")).lower() == "true"
 if platform.system() == "Linux":
@@ -43,3 +35,11 @@ elif platform.system() == "Darwin":
 else:
     tectonic_os_default = "x86_64-pc-windows-msvc"
 tectonic_os = config.get("tectonic_os", tectonic_os_default)
+
+
+# Figure dependencies
+figure_dependencies = config.get("figure_dependencies", {})
+for fd in figure_dependencies:
+    full_path = (Path("src") / "figures" / fd).absolute()
+    if not full_path.exists():
+        raise ValueError("Figure script specified in config file does not exist: {}".format(full_path))
