@@ -248,7 +248,7 @@ def download_simulation(
             break
 
     if deposit is None:
-        raise Exception("Cannot find deposit with the given title.")
+        raise ZenodoError("Cannot find deposit with the given title.")
 
     # Download the file
     print("Downloading file...")
@@ -279,7 +279,7 @@ def download_simulation(
                 f.write(r.content)
             return
 
-    raise Exception("Unable to download the file.")
+    raise ZenodoError("Unable to download the file.")
 
 
 # Upload or download the file
