@@ -21,4 +21,3 @@ jobs:
         uses: ./showyourwork/showyourwork-action
         env:
           ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
-          FOO_TEST: ${{ secrets.FOO_TEST }}
