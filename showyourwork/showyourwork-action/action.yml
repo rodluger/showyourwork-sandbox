@@ -1,0 +1,54 @@
+name: "showyourwork"
+author: "Rodrigo Luger"
+description: "Build reproducible scientific articles"
+runs:
+  using: "node12"
+  main: "src/index.js"
+inputs:
+  conda-cache-number:
+    description: "Bump this number to reset the conda cache"
+    required: false
+    default: "0"
+  article-cache-number:
+    description: "Bump this number to reset the article cache"
+    required: false
+    default: "0"
+  conda-url:
+    description: "Exact url pointing to the conda install script"
+    required: false
+    default: "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+  output-branch-suffix:
+    description: "Force-push output to branch with this suffix"
+    required: false
+    default: pdf
+  github-token:
+    description: "A token for access to GitHub (e.g. 'secrets.GITHUB_TOKEN')"
+    required: false
+    default: ${{ github.token }}
+  verbose:
+    description: "Enable verbose output and debug messages?"
+    required: false
+    default: false
+  action-path:
+    description: "Path to this action relative to the top level of the repo"
+    required: false
+    default: showyourwork/showyourwork-action
+  arxiv-tarball:
+    description: "Build a tarball for easy ArXiV submission?"
+    required: false
+    default: true
+  arxiv-tarball-exclude:
+    description: "Files/paths to be excluded from the tarball"
+    required: false
+    default: |
+      **/*.py
+      **/matplotlibrc
+      **/.gitignore
+      **/__pycache__
+  run-tests:
+    description: "Used internally for running tests"
+    required: false
+    default: false
+branding:
+  icon: "book-open"
+  color: "red"
