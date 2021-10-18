@@ -57,13 +57,18 @@ def restore_cache():
             # Can fail if the file was deleted since the last commit
             print(e)
             try:
-                subprocess.check_call(
-                    ["git", "ls-files", "--error-unmatch", file]
-                )
+                subprocess.check_call(["git", "ls-files", "--error-unmatch", file])
             except Exception as e:
                 print(e)
                 if os.path.exists(file):
                     os.remove(file)
+
+    # DEBUG
+    try:
+        os.remove("src/figures/simulation.dat.zenodo")
+    except:
+        print("OOPS")
+        pass
 
 
 def update_cache():
