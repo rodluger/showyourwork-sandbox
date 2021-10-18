@@ -265,9 +265,14 @@ def download_simulation(
     if deposit is None:
         raise ZenodoError("Cannot find deposit with the given title.")
 
+    # Get the latest *submitted* version
+    if deposit["submitted"]:
+        DEPOSIT_ID = deposit["id"]
+    else:
+        DEPOSIT_ID = deposit["links"]["latest_html"].split("/")[-1]
+
     # Download the file
     print("Downloading file...")
-    DEPOSIT_ID = deposit["id"]
     r = check_status(
         requests.get(
             f"https://{zenodo_url}/api/deposit/depositions/{DEPOSIT_ID}/files",
