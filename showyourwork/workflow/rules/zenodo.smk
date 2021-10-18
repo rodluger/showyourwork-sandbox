@@ -110,4 +110,4 @@ for fig in figure_dependencies:
 
         # Make it a dependency of the PDF as well
         # so we can add Zenodo links to the figure caption
-        zenodo_files.append(f"{dep_name}.zenodo")
+        zenodo_files.append(POSIX(FIGURES / f"{dep_name}.zenodo"))

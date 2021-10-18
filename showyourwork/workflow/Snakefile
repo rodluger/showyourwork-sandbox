@@ -13,10 +13,12 @@ include: "rules/errors.smk"
 include: "rules/repo.smk"
 include: "rules/auxfiles.smk"
 include: "rules/documentclass.smk"
+
+include: "rules/zenodo.smk"
+
 include: "rules/tree.smk"
 include: "rules/meta.smk"
 include: "rules/figure.smk"
 include: "rules/pdf.smk"
 include: "rules/arxiv.smk"
 include: "rules/tectonic.smk"
-include: "rules/zenodo.smk"

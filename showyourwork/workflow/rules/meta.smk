@@ -66,6 +66,7 @@ rule metadata:
         ],
         POSIX(TEMP / "repo.json"),
         POSIX(TEMP / "scripts.json"),
+        zenodo_files
     output:
         POSIX(TEMP / "meta.json"),
     run:
