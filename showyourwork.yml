@@ -1,9 +1,21 @@
 figure_dependencies:
+  
   my_figure.py:
     - simulation.dat:
-        generate: "python run_simulation.py"
+        generate: python run_simulation.py
+        dependencies:
+          - run_simulation.py # TODO
         upload:
           sandbox: false
           token_name: ZENODO_TOKEN
-          title: "Simulation results"
-          description: "The result of a very expensive simulation."
+          title: Simulation results
+          description: >-
+            This is the result of a very expensive simulation.
+            Here is some text describing the simulation in detail,
+            how it was generated, and how to use the dataset.
+          creators:
+            - Luger, Rodrigo
+
+  #fibonacci.py:
+  #  - fibonacci.dat:
+  #      zenodo_id: 5187276 # TODO

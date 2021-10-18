@@ -20,6 +20,7 @@ for fig in figure_dependencies:
         # Get the dependency name and any instructions on how to generate it
         if type(dep) is OrderedDict:
             dep_name = list(dep)[0]
+            
             if dep[dep_name] is None:
                 continue
             dep_props = dict(dep[dep_name])
@@ -39,18 +40,22 @@ for fig in figure_dependencies:
         token_name = dep_props.get("upload", {}).get("token_name", "ZENODO_TOKEN")
         deposit_title = dep_props.get("upload", {}).get("title", f"{repo}:{dep_name}")
         deposit_description = dep_props.get("upload", {}).get("description", f"File uploaded from {repo}.")
+        deposit_creators = dep_props.get("upload", {}).get("creators", get_repo_url().split("/")[-2])
         if upload and not generate:
             raise ValueError("Can only upload datasets when `generate` is True.")
 
 
         # Now either download the dataset (on GH Actions) or generate & upload it (locally)
+        # Note that we do NOT cache the dataset on GH Actions, since we don't
+        # want to risk running into the cache limit (5 GB I think).
         if ON_GITHUB_ACTIONS:
 
             rule:
                 message:
                     f"Downloading dependency file {dep_name} from Zenodo..."
                 output:
-                    temp(f"src/figures/{dep_name}")
+                    temp(f"src/figures/{dep_name}"),
+                    f"{file_path}/{file_name}.zenodo"
                 conda:
                     POSIX(USER / "environment.yml")
                 params:
@@ -68,6 +73,8 @@ for fig in figure_dependencies:
             rule:
                 message:
                     f"Generating figure dependency file {dep_name}..."
+                input:
+                    # TODO
                 output:
                     f"src/figures/{dep_name}"
                 conda:
@@ -81,7 +88,7 @@ for fig in figure_dependencies:
                 input:
                     f"src/figures/{dep_name}"
                 output:
-                    touch(temp(f"src/figures/{dep_name}.zenodo"))
+                    f"{file_path}/{file_name}.zenodo"
                 conda:
                     POSIX(USER / "environment.yml")
                 params:
@@ -90,6 +97,7 @@ for fig in figure_dependencies:
                     file_path=file_path,
                     deposit_title=deposit_title,
                     deposit_description=deposit_description,
+                    deposit_creators=deposit_creators,
                     sandbox=sandbox,
                     token_name=token_name,
                     generate=generate,
@@ -97,5 +105,9 @@ for fig in figure_dependencies:
                 script:
                     "../scripts/zenodo.py"
 
-            # Make the upload a dependency of the figure
-            figure_dependencies[fig].append(f"{dep_name}.zenodo")
+        # Make the deposit a dependency of the figure
+        figure_dependencies[fig].append(f"{dep_name}.zenodo")
+
+        # Make it a dependency of the PDF as well
+        # so we can add Zenodo links to the figure caption
+        zenodo_files.append(f"{dep_name}.zenodo")

@@ -23,6 +23,7 @@ arxiv_tarball_exclude = config.get(
         "**/*.py",
         "**/matplotlibrc",
         "**/.gitignore",
+        "**/__pycache__"
     ]),
 )
 
@@ -35,7 +36,6 @@ elif platform.system() == "Darwin":
 else:
     tectonic_os_default = "x86_64-pc-windows-msvc"
 tectonic_os = config.get("tectonic_os", tectonic_os_default)
-
 
 # Figure dependencies
 figure_dependencies = config.get("figure_dependencies", {})

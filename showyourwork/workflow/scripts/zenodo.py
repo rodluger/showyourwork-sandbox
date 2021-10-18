@@ -16,18 +16,9 @@ def check_status(r):
     return r
 
 
-def upload_simulation(
-    file_name,
-    deposit_title,
-    deposit_description,
-    sandbox=False,
-    token_name="ZENODO_TOKEN",
-    file_path=".",
-    generate="",
-    repo_url="",
-):
+def find_deposit(deposit_title, sandbox=False, token_name="ZENODO_TOKEN"):
 
-    # Upload to sandbox (for testing) or to actual Zenodo?
+    # Zenodo Sandbox (for testing) or Zenodo?
     if sandbox:
         zenodo_url = "sandbox.zenodo.org"
     else:
@@ -56,6 +47,37 @@ def upload_simulation(
         if entry["title"] == deposit_title:
             deposit = entry
             break
+
+    return deposit
+
+
+def upload_simulation(
+    file_name,
+    deposit_title,
+    deposit_description,
+    deposit_creators,
+    sandbox=False,
+    token_name="ZENODO_TOKEN",
+    file_path=".",
+    generate="",
+    repo_url="",
+):
+
+    # Upload to sandbox (for testing) or to actual Zenodo?
+    if sandbox:
+        zenodo_url = "sandbox.zenodo.org"
+    else:
+        zenodo_url = "zenodo.org"
+
+    # Retrieve the access token
+    access_token = os.getenv(token_name, None)
+    if access_token is None:
+        raise ValueError(
+            f"Zenodo access token `{token_name}` not found. This should be set as an environment variable and/or repository secret."
+        )
+
+    # Search for an existing deposit with the given title
+    deposit = find_deposit(deposit_title, sandbox=sandbox, token_name=token_name)
 
     # Either retrieve the deposit or create a new one
     if deposit:
@@ -126,7 +148,7 @@ def upload_simulation(
                 "title": deposit_title,
                 "upload_type": "dataset",
                 "description": f"{deposit_description}<br/><br/>Created using <a href='https://github.com/rodluger/showyourwork'>showyourwork</a> from <a href='{repo_url}'>this GitHub repo</a> using the following command: <pre><code class='language-bash'>cd src/figures && {generate}</code></pre>",
-                "creators": [{"name": "Luger, Rodrigo"}],
+                "creators": [{"name": name} for name in deposit_creators],
             }
         }
         r = check_status(
@@ -150,6 +172,9 @@ def upload_simulation(
         except ZenodoError as e:
             if "New version's files must differ from all previous versions" in str(e):
                 print("No change in the deposit's files. Aborting.")
+                # Revert to the previous deposit ID
+                DEPOSIT_ID = deposit["links"]["latest_html"].split("/")[-1]
+                pass
             else:
                 raise e
 
@@ -186,8 +211,8 @@ def upload_simulation(
             "metadata": {
                 "title": deposit_title,
                 "upload_type": "dataset",
-                "description": deposit_description,
-                "creators": [{"name": "Luger, Rodrigo"}],
+                "description": f"{deposit_description}<br/><br/>Created using <a href='https://github.com/rodluger/showyourwork'>showyourwork</a> from <a href='{repo_url}'>this GitHub repo</a> using the following command: <pre><code class='language-bash'>cd src/figures && {generate}</code></pre>",
+                "creators": [{"name": name} for name in deposit_creators],
             }
         }
         r = check_status(
@@ -208,6 +233,11 @@ def upload_simulation(
             )
         )
 
+    # Store the deposit URL
+    deposit_url = f"https://{zenodo_url}/record/{DEPOSIT_ID}"
+    with open(f"{file_path}/{file_name}.zenodo", "w") as f:
+        print(deposit_url, file=f)
+
 
 def download_simulation(
     file_name,
@@ -217,7 +247,7 @@ def download_simulation(
     file_path=".",
 ):
 
-    # Uplodad to sandbox (for testing) or to actual Zenodo?
+    # Donwload from sandbox (for testing) or from actual Zenodo?
     if sandbox:
         zenodo_url = "sandbox.zenodo.org"
     else:
@@ -231,22 +261,7 @@ def download_simulation(
         )
 
     # Search for an existing deposit with the given title
-    print("Searching for the deposit...")
-    r = check_status(
-        requests.get(
-            f"https://{zenodo_url}/api/deposit/depositions",
-            params={
-                "q": deposit_title,
-                "access_token": access_token,
-            },
-        )
-    )
-    deposit = None
-    for entry in r.json():
-        if entry["title"] == deposit_title:
-            deposit = entry
-            break
-
+    deposit = find_deposit(deposit_title, sandbox=sandbox, token_name=token_name)
     if deposit is None:
         raise ZenodoError("Cannot find deposit with the given title.")
 
@@ -277,9 +292,14 @@ def download_simulation(
             )
             with open(os.path.join(file_path, file_name), "wb") as f:
                 f.write(r.content)
-            return
+            break
+    else:
+        raise ZenodoError("Unable to download the file.")
 
-    raise ZenodoError("Unable to download the file.")
+    # Store the deposit URL
+    deposit_url = f"https://{zenodo_url}/record/{DEPOSIT_ID}"
+    with open(f"{file_path}/{file_name}.zenodo", "w") as f:
+        print(deposit_url, file=f)
 
 
 # Upload or download the file
@@ -288,6 +308,7 @@ if snakemake.params["action"] == "upload":
         snakemake.params["file_name"],
         snakemake.params["deposit_title"],
         snakemake.params["deposit_description"],
+        snakemake.params["deposit_creators"],
         sandbox=snakemake.params["sandbox"],
         token_name=snakemake.params["token_name"],
         file_path=snakemake.params["file_path"],
