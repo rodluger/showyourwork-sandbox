@@ -63,13 +63,6 @@ def restore_cache():
                 if os.path.exists(file):
                     os.remove(file)
 
-    # DEBUG
-    try:
-        os.remove("src/figures/simulation.dat.zenodo")
-    except:
-        print("OOPS")
-        pass
-
 
 def update_cache():
     """
