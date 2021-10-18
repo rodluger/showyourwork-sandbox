@@ -21,13 +21,10 @@
 % Main body
 \section{Introduction}
 
-Figure~\ref{fig:my_figure} is an example of a figure that can be generated one of two different ways.
-This is useful in the case that the figure is the result of, e.g., a very expensive simulation or MCMC run, which you might not want to ever run on GitHub Actions!
-Therefore, two rules exist for generating the figure, and which one gets run depends on whether the code is running on GitHub Actions or locally.
-If the code is run locally, the figure is generated from scratch by running the expensive simulation.
-The result of the expensive simulation is then uploaded to Zenodo.
-Conversely, if the code is run on GitHub Actions, the code downloads the simulation results (skipping the expensive step) and then generates the figure.
-Check out the \texttt{Snakefile} and the \texttt{showyourwork.yml} config file for the full implementation of these rules.
+Figure~\ref{fig:my_figure} is an example of a figure that depends on the output of an expensive computation.
+In general, if a computation takes more than a few tens of minutes to run, you probably don't want to run it on GitHub Actions.
+To help in these cases, \texttt{showyourwork} makes it easy to switch between running the computation and uploading the output to \href{https://zenodo.org}{Zenodo} (when running locally) and downloading the output from Zenodo (when running on GitHub Actions).
+To set this up, simply specify the dataset(s) your figure script depends on in the top-level \texttt{showyourwork.yml} config file, along with a shell command to generate it and metadata for the Zenodo deposit.
 
 % A sample figure generated from an external dataset
 \begin{figure}[ht!]
@@ -35,6 +32,11 @@ Check out the \texttt{Snakefile} and the \texttt{showyourwork.yml} config file f
         \includegraphics[width=0.75\linewidth]{figures/my_figure.pdf}
         \caption{
             A sample figure generated from the output of a very expensive simulation.
+            When running locally, the output is generated and uploaded to Zenodo;
+            when running on the cloud, the output is downloaded from Zenodo.
+            In addition to the usual GitHub icon in the margin of this caption, we also
+            see an icon linking to the Zenodo record for the dataset, generated
+            automatically by \texttt{showyourwork}.
         }
         % This label tells showyourwork that the script `figures/my_figure.py'
         % generates the PDF included above
